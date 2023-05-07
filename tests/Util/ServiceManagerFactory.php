@@ -1,4 +1,5 @@
 <?php
+
 /*
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -19,6 +20,7 @@
 
 namespace SlmQueueSqsTest\Util;
 
+use Laminas\ModuleManager\ModuleManager;
 use Laminas\Mvc\Service\ServiceManagerConfig;
 use Laminas\ServiceManager\ServiceManager;
 
@@ -39,7 +41,7 @@ class ServiceManagerFactory
     /**
      * @param array $config
      */
-    public static function setConfig(array $config)
+    public static function setConfig(array $config): void
     {
         static::$config = $config;
     }
@@ -47,22 +49,28 @@ class ServiceManagerFactory
     /**
      * Builds a new service manager
      */
-    public static function getServiceManager()
+    public static function getServiceManager(): ServiceManager
     {
-        $serviceManager = new ServiceManager(
-            new ServiceManagerConfig(
-                isset(static::$config['service_manager']) ? static::$config['service_manager'] : array()
-            )
+        $serviceManagerConfig = new ServiceManagerConfig(
+            isset(static::$config['service_manager']) ? static::$config['service_manager'] : []
         );
-        $serviceManager->setService('ApplicationConfig', static::$config);
-        $serviceManager->setFactory('ServiceListener', 'Zend\Mvc\Service\ServiceListenerFactory');
-
-        /**
-         * @var $moduleManager \Laminas\ModuleManager\ModuleManager 
+        /*
+         * get array for new ServiceManager
          */
+        $config = (method_exists($serviceManagerConfig, 'toArray')
+            && method_exists(ServiceManager::class, 'configure')) ?
+            $serviceManagerConfig->toArray() : $serviceManagerConfig;
+
+        $serviceManager = new ServiceManager($config);
+        $serviceManager->setService('ApplicationConfig', static::$config);
+        $serviceManager->setAllowOverride(true);
+        $serviceManager->setFactory('ServiceListener', 'Laminas\Mvc\Service\ServiceListenerFactory');
+        $serviceManager->setAllowOverride(false);
+
+        /** @var $moduleManager ModuleManager */
         $moduleManager = $serviceManager->get('ModuleManager');
         $moduleManager->loadModules();
-        //$serviceManager->setAllowOverride(true);
+
         return $serviceManager;
     }
 }

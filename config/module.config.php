@@ -1,32 +1,19 @@
 <?php
 
+use Laminas\ServiceManager\AbstractFactory\ReflectionBasedAbstractFactory;
+use SlmQueueSqs\Command\StartWorkerCommand;
+
 return array(
     'service_manager' => array(
         'factories' => array(
+            StartWorkerCommand::class => ReflectionBasedAbstractFactory::class,
             'SlmQueueSqs\Worker\SqsWorker' => 'SlmQueue\Factory\WorkerFactory'
         )
     ),
 
-    'console'   => array(
-        'router' => array(
-            'routes' => array(
-                'slm-queue-sqs-worker' => array(
-                    'type'    => 'Simple',
-                    'options' => array(
-                        'route'    => 'queue sqs <queue> [--visibilityTimeout=] [--waitTime=]',
-                        'defaults' => array(
-                            'controller' => 'SlmQueueSqs\Controller\SqsWorkerController',
-                            'action'     => 'process'
-                        ),
-                    ),
-                ),
-            ),
-        ),
-    ),
-
-    'controllers' => array(
-        'factories' => array(
-            'SlmQueueSqs\Controller\SqsWorkerController' => 'SlmQueueSqs\Factory\SqsWorkerControllerFactory'
-        )
-    ),
+    'laminas-cli' => [
+        'commands' => [
+            'slm-queue:sqs' => StartWorkerCommand::class,
+        ],
+    ],
 );
