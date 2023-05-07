@@ -7,7 +7,9 @@ return array(
     'service_manager' => array(
         'factories' => array(
             StartWorkerCommand::class => ReflectionBasedAbstractFactory::class,
-            'SlmQueueSqs\Worker\SqsWorker' => 'SlmQueue\Factory\WorkerFactory'
+            \Aws\Sdk::class => \SlmQueueSqs\Factory\AwsFactory::class,
+            \SlmQueueSqs\Worker\SqsWorker::class => \SlmQueue\Factory\WorkerAbstractFactory::class,
+            \SlmQueueSqs\Queue\SqsQueue::class => \SlmQueueSqs\Factory\SqsQueueFactory::class
         )
     ),
 

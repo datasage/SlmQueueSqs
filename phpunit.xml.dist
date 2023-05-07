@@ -1,27 +1,16 @@
 <?xml version="1.0"?>
-<phpunit
-    bootstrap="./tests/Bootstrap.php"
-    colors="true"
-    convertErrorsToExceptions="true"
-    convertNoticesToExceptions="true"
-    convertWarningsToExceptions="true"
-    verbose="true"
-    stopOnFailure="false"
-    processIsolation="false"
-    backupGlobals="false"
->
-    <testsuite name="SlmQueueSqs tests">
-        <directory>./tests</directory>
-    </testsuite>
-    <filter>
-        <whitelist addUncoveredFilesFromWhitelist="true">
-            <directory suffix=".php">./src</directory>
-        </whitelist>
-    </filter>
-
-    <logging>
-        <log type="coverage-clover" target="./tests/build/logs/clover.xml"/>
-        <log type="coverage-html" target="./tests/build/coverage" lowUpperBound="90" highLowerBound="100"/>
-    </logging>
-
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" bootstrap="./tests/Bootstrap.php" colors="true" convertErrorsToExceptions="true" convertNoticesToExceptions="true" convertWarningsToExceptions="true" verbose="true" stopOnFailure="false" processIsolation="false" backupGlobals="false" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd">
+  <coverage includeUncoveredFiles="true">
+    <include>
+      <directory suffix=".php">./src</directory>
+    </include>
+    <report>
+      <clover outputFile="./tests/build/logs/clover.xml"/>
+      <html outputDirectory="./tests/build/coverage" lowUpperBound="90" highLowerBound="100"/>
+    </report>
+  </coverage>
+  <testsuite name="SlmQueueSqs tests">
+    <directory>./tests</directory>
+  </testsuite>
+  <logging/>
 </phpunit>

@@ -11,5 +11,6 @@ class SimpleJob extends AbstractJob
      */
     public function execute(): ?int
     {
+        return null;
     }
 }

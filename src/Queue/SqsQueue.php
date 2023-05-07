@@ -8,12 +8,15 @@ use SlmQueue\Job\JobPluginManager;
 use SlmQueue\Queue\AbstractQueue;
 use SlmQueueSqs\Exception;
 use SlmQueueSqs\Options\SqsQueueOptions;
+use SlmQueueSqs\Worker\SqsWorker;
 
 /**
  * SqsQueue
  */
 class SqsQueue extends AbstractQueue implements SqsQueueInterface
 {
+    protected static $defaultWorkerName = SqsWorker::class;
+
     const FIFO_QUEUE_SUFFIX = '.fifo';
 
     /**
