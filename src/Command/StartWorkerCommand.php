@@ -9,7 +9,7 @@ class StartWorkerCommand extends \SlmQueue\Command\StartWorkerCommand {
     {
         parent::configure();
 
-        $this->addArgument('visibilityTimeout', InputArgument::OPTIONAL);
-        $this->addArgument('waitTime', InputArgument::OPTIONAL);
+        $this->addOption('visibilityTimeout',  null, InputArgument::OPTIONAL);
+        $this->addOption('waitTime', null, InputArgument::OPTIONAL);
     }
 }
