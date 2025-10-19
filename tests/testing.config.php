@@ -31,10 +31,23 @@ return array(
             'max_runs' => 1
         ),
 
+        'queues' => array(
+            'newsletter' => array(
+                'queue_url' => 'https://sqs.eu-west-1.amazonaws.com/123456789012/newsletter'
+            )
+        ),
+
         'queue_manager' => array(
             'factories' => array(
                 'newsletter' => 'SlmQueueSqs\Factory\SqsQueueFactory'
             )
         )
-    )
+    ),
+
+    // Override service manager factories for tests
+    'service_manager' => array(
+        'factories' => array(
+            \Aws\Sdk::class => \SlmQueueSqsTest\Factory\TestAwsFactory::class,
+        ),
+    ),
 );

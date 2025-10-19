@@ -9,6 +9,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class StartWorkerCommand extends \SlmQueue\Command\StartWorkerCommand {
+    #[\Override]
     protected function configure(): void
     {
         parent::configure();

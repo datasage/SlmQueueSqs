@@ -17,27 +17,15 @@ class SqsQueue extends AbstractQueue implements SqsQueueInterface
 {
     protected static $defaultWorkerName = SqsWorker::class;
 
-    const FIFO_QUEUE_SUFFIX = '.fifo';
+    public const FIFO_QUEUE_SUFFIX = '.fifo';
 
-    /**
-     * @var SqsClient
-     */
-    protected $sqsClient;
-
-    /**
-     * @var SqsQueueOptions
-     */
-    protected $queueOptions;
 
     public function __construct(
-        SqsClient $sqsClient,
-        SqsQueueOptions $options,
+        protected SqsClient $sqsClient,
+        protected SqsQueueOptions $queueOptions,
         string $name,
         JobPluginManager $jobPluginManager
     ) {
-        $this->sqsClient    = $sqsClient;
-        $this->queueOptions = $options;
-
         parent::__construct($name, $jobPluginManager);
 
         // If an URL has explicitly been given in the options, let's use it, otherwise we dynamically fetch it
@@ -56,6 +44,7 @@ class SqsQueue extends AbstractQueue implements SqsQueueInterface
      *
      * {@inheritDoc}
      */
+    #[\Override]
     public function push(JobInterface $job, array $options = array()): void
     {
         $parameters = array(
@@ -92,7 +81,8 @@ class SqsQueue extends AbstractQueue implements SqsQueueInterface
      *
      * {@inheritDoc}
      */
-    public function pop(array $options = array()): ?JobInterface
+    #[\Override]
+    public function pop(array $options = []): ?JobInterface
     {
         $options['max_number_of_messages'] = 1;
 
@@ -117,6 +107,7 @@ class SqsQueue extends AbstractQueue implements SqsQueueInterface
     /**
      * {@inheritDoc}
      */
+    #[\Override]
     public function delete(JobInterface $job): void
     {
         $parameters = array(
@@ -138,7 +129,8 @@ class SqsQueue extends AbstractQueue implements SqsQueueInterface
      *
      * {@inheritDoc}
      */
-    public function batchPush(array $jobs, array $options = array())
+    #[\Override]
+    public function batchPush(array $jobs, array $options = [])
     {
         // SQS can only handle up to 10 jobs, so if we have more jobs, we handle them in slices
         if (count($jobs) > 10) {
@@ -255,6 +247,7 @@ class SqsQueue extends AbstractQueue implements SqsQueueInterface
     /**
      * {@inheritDoc}
      */
+    #[\Override]
     public function batchDelete(array $jobs)
     {
         // SQS can only handle up to 10 jobs, so if we have more jobs, we handle them in slices

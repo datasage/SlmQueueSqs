@@ -18,6 +18,7 @@ class SqsWorker extends AbstractWorker
     /**
      * {@inheritDoc}
      */
+    #[\Override]
     public function processJob(JobInterface $job, QueueInterface $queue): int
     {
         if (!$queue instanceof SqsQueueInterface) {

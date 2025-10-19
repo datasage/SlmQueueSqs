@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<files psalm-version="6.13.1@1e3b7f0a8ab32b23197b91107adc0a7ed8a05b51">
+  <file src="src/Command/StartWorkerCommand.php">
+    <InvalidCatch>
+      <code><![CDATA[try {
+            $messages = $worker->processQueue($queue, $input->getArguments() + $input->getOptions());
+        } catch (ExceptionInterface $e) {
+            throw new WorkerProcessException(
+                'Caught exception while processing queue',
+                $e->getCode(),
+                $e
+            );
+        }]]></code>
+    </InvalidCatch>
+    <MissingOverrideAttribute>
+      <code><![CDATA[protected function execute(InputInterface $input, OutputInterface $output): int]]></code>
+    </MissingOverrideAttribute>
+    <UnusedClass>
+      <code><![CDATA[StartWorkerCommand]]></code>
+    </UnusedClass>
+  </file>
+  <file src="src/Factory/AwsFactory.php">
+    <UnusedClass>
+      <code><![CDATA[AwsFactory]]></code>
+    </UnusedClass>
+  </file>
+  <file src="src/Factory/SqsQueueFactory.php">
+    <UnusedClass>
+      <code><![CDATA[SqsQueueFactory]]></code>
+    </UnusedClass>
+  </file>
+  <file src="src/Options/SqsQueueOptions.php">
+    <MissingTemplateParam>
+      <code><![CDATA[SqsQueueOptions]]></code>
+    </MissingTemplateParam>
+  </file>
+  <file src="src/Queue/SqsQueueInterface.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[batchDelete]]></code>
+      <code><![CDATA[batchPush]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+</files>

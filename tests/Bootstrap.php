@@ -17,6 +17,8 @@
  * <http://www.doctrine-project.org>.
  */
 
+use SlmQueueSqsTest\Util\ServiceManagerFactory;
+
 if  (!($loader = @include __DIR__ . '/../vendor/autoload.php')
     && !($loader = @include __DIR__ . '/../../../autoload.php')
 ) {
@@ -29,5 +31,3 @@ $loader->add('SlmQueueSqsTest\\', __DIR__);
 if (!$config = @include __DIR__ . '/TestConfiguration.php') {
     $config = include __DIR__ . '/TestConfiguration.php.dist';
 }
-
-\SlmQueueSqsTest\Util\ServiceManagerFactory::setConfig($config);

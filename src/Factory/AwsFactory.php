@@ -3,21 +3,11 @@
 namespace SlmQueueSqs\Factory;
 
 use Aws\Sdk as AwsSdk;
-use Interop\Container\ContainerInterface;
-use Laminas\ServiceManager\Factory\FactoryInterface;
+use Psr\Container\ContainerInterface;
 
-/**
- * Factory used to instantiate an AWS client
- */
-class AwsFactory implements FactoryInterface
+class AwsFactory
 {
-    /**
-     * @param ContainerInterface $container
-     * @param string $requestedName
-     * @param array|null $options
-     * @return AwsSdk
-     */
-    public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
+    public function __invoke(ContainerInterface $container): AwsSdk
     {
         // Instantiate the AWS SDK for PHP
         $config = $container->get('Config');

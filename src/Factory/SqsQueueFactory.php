@@ -20,7 +20,8 @@ class SqsQueueFactory implements FactoryInterface
      * @param  array|null         $options
      * @return SqsQueue
      */
-    public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
+    #[\Override]
+    public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null)
     {
         $sqsClient        = $container->get(Sdk::class)->createSqs();
         $jobPluginManager = $container->get(JobPluginManager::class);
@@ -29,9 +30,8 @@ class SqsQueueFactory implements FactoryInterface
         $config = $container->get('Config');
         $config = $config['slm_queue']['queues'];
 
-        $options = new SqsQueueOptions(isset($config[$requestedName]) ? $config[$requestedName] : []);
+        $queueOptions = new SqsQueueOptions(isset($config[$requestedName]) ? $config[$requestedName] : []);
 
-
-        return new SqsQueue($sqsClient, $options, $requestedName, $jobPluginManager);
+        return new SqsQueue($sqsClient, $queueOptions, $requestedName, $jobPluginManager);
     }
 }
