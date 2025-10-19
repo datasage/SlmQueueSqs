@@ -31,7 +31,7 @@
         "laminas/laminas-stdlib": "^3.21",
         "laminas/laminas-cli": "^1.13",
         "slm/queue": "^4",
-        "aws/aws-sdk-php": "3.*"
+        "aws/aws-sdk-php": "^3.356"
     },
     "require-dev": {
       "laminas/laminas-modulemanager": "^2.19",
