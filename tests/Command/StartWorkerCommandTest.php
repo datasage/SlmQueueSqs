@@ -15,7 +15,6 @@ use SlmQueueSqsTest\Asset\FailingJob;
 use SlmQueueSqsTest\Asset\SimpleJob;
 use SlmQueueSqsTest\Asset\SimpleWorker;
 use Symfony\Component\Console\Exception\RuntimeException as ConsoleRuntimeException;
-use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Tester\CommandTester;
 
 class StartWorkerCommandTest extends TestCase
@@ -60,8 +59,6 @@ class StartWorkerCommandTest extends TestCase
 
     public function testThrowExceptionIfNoQueue(): void
     {
-        $input = new ArrayInput([]);
-
         $this->expectException(ConsoleRuntimeException::class);
 
         $this->command->execute([]);
