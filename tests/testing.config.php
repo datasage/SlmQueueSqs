@@ -1,4 +1,5 @@
 <?php
+
 /*
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -35,10 +36,8 @@ return array(
         ),
 
         'worker_strategies' => [
-            'default' => [ // per worker
-                MaxRunsStrategy::class => ['max_runs' => 1],
-            ],
             'queues' => [ // per queue
+                'newsletter' => [MaxRunsStrategy::class => ['max_runs' => 1],]
             ],
         ],
 

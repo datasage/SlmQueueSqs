@@ -83,7 +83,8 @@ class SqsQueueTest extends TestCase
             ->will($this->returnValue($result));
 
         $this->sqsQueue->push(
-            $job, array(
+            $job,
+            array(
             'delay_seconds' => null
             )
         );
@@ -263,7 +264,7 @@ class SqsQueueTest extends TestCase
 
         $firstSuccessful = array();
 
-        for ($i = 0 ; $i != 10 ; ++$i) {
+        for ($i = 0; $i != 10; ++$i) {
             $firstSuccessful[] = array(
                 'Id'               => $i,
                 'MessageId'        => $i + 1,
@@ -332,7 +333,7 @@ class SqsQueueTest extends TestCase
 
         $firstSuccessful = array();
 
-        for ($i = 0 ; $i != 10 ; ++$i) {
+        for ($i = 0; $i != 10; ++$i) {
             $firstSuccessful[] = array(
                 'Id'               => $i,
                 'MessageId'        => $i + 1,
@@ -423,7 +424,8 @@ class SqsQueueTest extends TestCase
             'receiptHandle' => 'receipt_123',
             'md5'           => 'funny',
             'foo'           => 'bar'
-            ), $job->getMetadata()
+            ),
+            $job->getMetadata()
         );
     }
 }

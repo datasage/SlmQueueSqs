@@ -15,7 +15,7 @@ class StartWorkerCommand extends \SlmQueue\Command\StartWorkerCommand
     {
         parent::configure();
 
-        $this->addOption('visibilityTimeout',  null, InputArgument::OPTIONAL);
+        $this->addOption('visibilityTimeout', null, InputArgument::OPTIONAL);
         $this->addOption('waitTime', null, InputArgument::OPTIONAL);
     }
 
@@ -28,7 +28,7 @@ class StartWorkerCommand extends \SlmQueue\Command\StartWorkerCommand
         try {
             $messages = $worker->processQueue($queue, $input->getArguments() + $input->getOptions());
         } catch (ExceptionInterface $e) {
-            throw new WorkerProcessException(
+            throw new \RuntimeException(
                 'Caught exception while processing queue',
                 $e->getCode(),
                 $e
@@ -36,10 +36,12 @@ class StartWorkerCommand extends \SlmQueue\Command\StartWorkerCommand
         }
 
         $messages = implode(
-            "\n", array_map(
+            "\n",
+            array_map(
                 function (string $message): string {
                     return sprintf(' - %s', $message);
-                }, $messages
+                },
+                $messages
             )
         );
 

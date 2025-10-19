@@ -6,7 +6,6 @@ use Aws\MockHandler;
 use Aws\Result;
 use Aws\Sdk;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
-use Laminas\Test\Util\ModuleLoader;
 use PHPUnit\Framework\TestCase;
 use SlmQueueSqs\Command\StartWorkerCommand;
 use SlmQueue\Queue\QueuePluginManager;
@@ -14,6 +13,7 @@ use SlmQueue\Worker\WorkerPluginManager;
 use SlmQueueSqsTest\Asset\FailingJob;
 use SlmQueueSqsTest\Asset\SimpleJob;
 use SlmQueueSqsTest\Asset\SimpleWorker;
+use SlmQueueSqsTest\Util\ServiceManagerFactory;
 use Symfony\Component\Console\Exception\RuntimeException as ConsoleRuntimeException;
 use Symfony\Component\Console\Tester\CommandTester;
 
@@ -27,8 +27,8 @@ class StartWorkerCommandTest extends TestCase
 
     public function setUp(): void
     {
-        $moduleLoader = new ModuleLoader(include __DIR__ . '/../TestConfiguration.php.dist');
-        $serviceManager = $moduleLoader->getServiceManager();
+        ServiceManagerFactory::setConfig(include __DIR__ . '/../TestConfiguration.php.dist');
+        $serviceManager = ServiceManagerFactory::getServiceManager();
 
         $this->mockHandler = new MockHandler();
 

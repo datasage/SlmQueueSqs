@@ -96,18 +96,18 @@ class SqsQueue extends AbstractQueue implements SqsQueueInterface
         $jobs = $this->batchPop($options);
 
         switch (count($jobs)) {
-        case 0:
-            return null;
-        case 1:
-            return reset($jobs);
-        default:
-            throw new Exception\RuntimeException(
-                sprintf(
-                    '%s jobs were popped in "%s" method, while only one (or zero) were expected.',
-                    count($jobs),
-                    __METHOD__
-                )
-            );
+            case 0:
+                return null;
+            case 1:
+                return reset($jobs);
+            default:
+                throw new Exception\RuntimeException(
+                    sprintf(
+                        '%s jobs were popped in "%s" method, while only one (or zero) were expected.',
+                        count($jobs),
+                        __METHOD__
+                    )
+                );
         }
     }
 
@@ -160,7 +160,7 @@ class SqsQueue extends AbstractQueue implements SqsQueueInterface
         );
 
         /**
-         * @var $job JobInterface 
+         * @var $job JobInterface
          */
         foreach ($jobs as $key => $job) {
             $jobParameters = array(
@@ -184,7 +184,8 @@ class SqsQueue extends AbstractQueue implements SqsQueueInterface
             }
 
             $parameters['Entries'][] = array_filter(
-                $jobParameters, function ($value) {
+                $jobParameters,
+                function ($value) {
                     return $value !== null;
                 }
             );
@@ -285,7 +286,7 @@ class SqsQueue extends AbstractQueue implements SqsQueueInterface
         );
 
         /**
-         * @var $job JobInterface 
+         * @var $job JobInterface
          */
         foreach ($jobs as $key => $job) {
             $jobParameters = array(
