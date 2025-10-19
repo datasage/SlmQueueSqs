@@ -34,7 +34,7 @@ class StartWorkerCommandTest extends TestCase
         $this->mockHandler = new MockHandler();
 
         $serviceManager->setAllowOverride(true);
-        $serviceManager->setService(Sdk::class, new Sdk(['handler' => $this->mockHandler]));
+        $serviceManager->setService(Sdk::class, new Sdk(['region' => 'us-west-1', 'handler' => $this->mockHandler]));
         $serviceManager->setAllowOverride(false);
 
         $this->queuePluginManager = $serviceManager->get(QueuePluginManager::class);

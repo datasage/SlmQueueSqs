@@ -41,7 +41,12 @@ jobs:
             ${{ runner.os }}-php-${{ matrix.php }}-composer-
             ${{ runner.os }}-php-
 
+      - name: Install dependencies (PHP 8.5 - ignore platform reqs)
+        if: matrix.php == '8.5'
+        run: composer install --prefer-dist --no-progress --no-interaction --ignore-platform-req=php
+
       - name: Install dependencies
+        if: matrix.php != '8.5'
         run: composer install --prefer-dist --no-progress --no-interaction
 
       - name: PHP Lint
