@@ -27,7 +27,7 @@ class StartWorkerCommand extends \SlmQueue\Command\StartWorkerCommand
 
         try {
             $messages = $worker->processQueue($queue, $input->getArguments() + $input->getOptions());
-        } catch (ExceptionInterface $e) {
+        } catch (\Exception $e) {
             throw new \RuntimeException(
                 'Caught exception while processing queue',
                 $e->getCode(),
