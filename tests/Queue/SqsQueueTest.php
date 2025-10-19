@@ -30,7 +30,7 @@ class SqsQueueTest extends TestCase
     public function setUp(): void
     {
         $this->sqsClient = $this->getMockBuilder(SqsClient::class)
-            ->addMethods(array('getQueueUrl', 'sendMessage', 'sendMessageBatch', 'deleteMessageBatch', 'receiveMessage'))
+            ->addMethods(['getQueueUrl', 'sendMessage', 'sendMessageBatch', 'deleteMessageBatch', 'receiveMessage'])
             ->disableOriginalConstructor()
             ->getMock();
 
