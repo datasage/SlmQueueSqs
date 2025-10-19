@@ -7,6 +7,8 @@ use SlmQueueSqs\Exception\MissingMessageGroupException;
 use SlmQueueSqs\Options\SqsQueueOptions;
 use SlmQueueSqs\Queue\SqsQueue;
 use SlmQueueSqsTest\Asset;
+use Aws\Sqs\SqsClient;
+use SlmQueue\Job\JobPluginManager;
 
 class SqsQueueTest extends TestCase
 {
@@ -27,12 +29,12 @@ class SqsQueueTest extends TestCase
 
     public function setUp(): void
     {
-        $this->sqsClient = $this->getMockBuilder('Aws\Sqs\SqsClient')
-            ->addMethods(array('getQueueUrl', 'sendMessage', 'sendMessageBatch', 'deleteMessageBatch', 'receiveMessage'))
+        $this->sqsClient = $this->getMockBuilder(SqsClient::class)
+            ->addMethods(['getQueueUrl', 'sendMessage', 'sendMessageBatch', 'deleteMessageBatch', 'receiveMessage'])
             ->disableOriginalConstructor()
             ->getMock();
 
-        $this->jobPluginManager = $this->getMockBuilder('SlmQueue\Job\JobPluginManager')
+        $this->jobPluginManager = $this->getMockBuilder(JobPluginManager::class)
             ->disableOriginalConstructor()->getMock();
 
         $this->sqsClient->expects($this->any())
@@ -47,11 +49,11 @@ class SqsQueueTest extends TestCase
 
     public function testReuseSqsUrlFromOptions()
     {
-        $sqsClient = $this->getMockBuilder('Aws\Sqs\SqsClient')
+        $sqsClient = $this->getMockBuilder(SqsClient::class)
             ->addMethods(array('getQueueUrl'))
             ->disableOriginalConstructor()
             ->getMock();
-        $jobPluginManager = $this->getMockBuilder('SlmQueue\Job\JobPluginManager')
+        $jobPluginManager = $this->getMockBuilder(JobPluginManager::class)
             ->disableOriginalConstructor()->getMock();
 
         $this->sqsClient->expects($this->never())->method('getQueueUrl');
@@ -81,7 +83,8 @@ class SqsQueueTest extends TestCase
             ->will($this->returnValue($result));
 
         $this->sqsQueue->push(
-            $job, array(
+            $job,
+            array(
             'delay_seconds' => null
             )
         );
@@ -261,7 +264,7 @@ class SqsQueueTest extends TestCase
 
         $firstSuccessful = array();
 
-        for ($i = 0 ; $i != 10 ; ++$i) {
+        for ($i = 0; $i != 10; ++$i) {
             $firstSuccessful[] = array(
                 'Id'               => $i,
                 'MessageId'        => $i + 1,
@@ -285,29 +288,19 @@ class SqsQueueTest extends TestCase
 
         $self = $this;
 
-        $this->sqsClient->expects($this->at(0))
+        $this->sqsClient->expects($this->exactly(2))
             ->method('sendMessageBatch')
-            ->with(
-                $this->callback(
-                    function ($parameters) use ($self) {
-                        $self->assertCount(10, $parameters['Entries']);
-                        return true;
-                    }
-                )
-            )
-                        ->will($this->returnValue($firstResult));
-
-        $this->sqsClient->expects($this->at(1))
-            ->method('sendMessageBatch')
-            ->with(
-                $this->callback(
-                    function ($parameters) use ($self) {
-                        $self->assertCount(1, $parameters['Entries']);
-                        return true;
-                    }
-                )
-            )
-                        ->will($this->returnValue($secondResult));
+            ->willReturnCallback(function ($parameters) use ($self, $firstResult, $secondResult) {
+                static $call = 0;
+                if ($call === 0) {
+                    $self->assertCount(10, $parameters['Entries']);
+                    $call++;
+                    return $firstResult;
+                }
+                $self->assertCount(1, $parameters['Entries']);
+                $call++;
+                return $secondResult;
+            });
 
         $this->sqsQueue->batchPush($jobs);
 
@@ -340,7 +333,7 @@ class SqsQueueTest extends TestCase
 
         $firstSuccessful = array();
 
-        for ($i = 0 ; $i != 10 ; ++$i) {
+        for ($i = 0; $i != 10; ++$i) {
             $firstSuccessful[] = array(
                 'Id'               => $i,
                 'MessageId'        => $i + 1,
@@ -364,29 +357,19 @@ class SqsQueueTest extends TestCase
 
         $self = $this;
 
-        $this->sqsClient->expects($this->at(0))
+        $this->sqsClient->expects($this->exactly(2))
             ->method('deleteMessageBatch')
-            ->with(
-                $this->callback(
-                    function ($parameters) use ($self) {
-                            $self->assertCount(10, $parameters['Entries']);
-                            return true;
-                    }
-                )
-            )
-            ->will($this->returnValue($firstResult));
-
-        $this->sqsClient->expects($this->at(1))
-            ->method('deleteMessageBatch')
-            ->with(
-                $this->callback(
-                    function ($parameters) use ($self) {
-                            $self->assertCount(1, $parameters['Entries']);
-                            return true;
-                    }
-                )
-            )
-            ->will($this->returnValue($secondResult));
+            ->willReturnCallback(function ($parameters) use ($self, $firstResult, $secondResult) {
+                static $call = 0;
+                if ($call === 0) {
+                    $self->assertCount(10, $parameters['Entries']);
+                    $call++;
+                    return $firstResult;
+                }
+                $self->assertCount(1, $parameters['Entries']);
+                $call++;
+                return $secondResult;
+            });
 
         $this->sqsQueue->batchDelete($jobs);
 
@@ -441,7 +424,8 @@ class SqsQueueTest extends TestCase
             'receiptHandle' => 'receipt_123',
             'md5'           => 'funny',
             'foo'           => 'bar'
-            ), $job->getMetadata()
+            ),
+            $job->getMetadata()
         );
     }
 }

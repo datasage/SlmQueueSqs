@@ -8,33 +8,24 @@ use SlmQueue\Job\JobPluginManager;
 use SlmQueue\Queue\AbstractQueue;
 use SlmQueueSqs\Exception;
 use SlmQueueSqs\Options\SqsQueueOptions;
+use SlmQueueSqs\Worker\SqsWorker;
 
 /**
  * SqsQueue
  */
 class SqsQueue extends AbstractQueue implements SqsQueueInterface
 {
-    const FIFO_QUEUE_SUFFIX = '.fifo';
+    protected static $defaultWorkerName = SqsWorker::class;
 
-    /**
-     * @var SqsClient
-     */
-    protected $sqsClient;
+    public const FIFO_QUEUE_SUFFIX = '.fifo';
 
-    /**
-     * @var SqsQueueOptions
-     */
-    protected $queueOptions;
 
     public function __construct(
-        SqsClient $sqsClient,
-        SqsQueueOptions $options,
+        protected SqsClient $sqsClient,
+        protected SqsQueueOptions $queueOptions,
         string $name,
         JobPluginManager $jobPluginManager
     ) {
-        $this->sqsClient    = $sqsClient;
-        $this->queueOptions = $options;
-
         parent::__construct($name, $jobPluginManager);
 
         // If an URL has explicitly been given in the options, let's use it, otherwise we dynamically fetch it
@@ -53,6 +44,7 @@ class SqsQueue extends AbstractQueue implements SqsQueueInterface
      *
      * {@inheritDoc}
      */
+    #[\Override]
     public function push(JobInterface $job, array $options = array()): void
     {
         $parameters = array(
@@ -61,11 +53,18 @@ class SqsQueue extends AbstractQueue implements SqsQueueInterface
             'DelaySeconds' => isset($options['delay_seconds']) ? $options['delay_seconds'] : null
         );
 
+        // Allow MessageGroupId to be sent for both queue types when provided
+        if (isset($options['message_group_id']) && $options['message_group_id'] !== '') {
+            $parameters['MessageGroupId'] = $options['message_group_id'];
+        }
+
         if ($this->isFifoQueue()) {
             $parameters = array_merge(
                 $parameters,
                 $this->getFifoQueueParameters($parameters['MessageBody'], $options)
             );
+            // DelaySeconds is not supported for FIFO queues; ensure it is not sent
+            unset($parameters['DelaySeconds']);
         }
 
         $result = $this->sqsClient->sendMessage(array_filter($parameters));
@@ -89,31 +88,33 @@ class SqsQueue extends AbstractQueue implements SqsQueueInterface
      *
      * {@inheritDoc}
      */
-    public function pop(array $options = array()): ?JobInterface
+    #[\Override]
+    public function pop(array $options = []): ?JobInterface
     {
         $options['max_number_of_messages'] = 1;
 
         $jobs = $this->batchPop($options);
 
         switch (count($jobs)) {
-        case 0:
-            return null;
-        case 1:
-            return reset($jobs);
-        default:
-            throw new Exception\RuntimeException(
-                sprintf(
-                    '%s jobs were popped in "%s" method, while only one (or zero) were expected.',
-                    count($jobs),
-                    __METHOD__
-                )
-            );
+            case 0:
+                return null;
+            case 1:
+                return reset($jobs);
+            default:
+                throw new Exception\RuntimeException(
+                    sprintf(
+                        '%s jobs were popped in "%s" method, while only one (or zero) were expected.',
+                        count($jobs),
+                        __METHOD__
+                    )
+                );
         }
     }
 
     /**
      * {@inheritDoc}
      */
+    #[\Override]
     public function delete(JobInterface $job): void
     {
         $parameters = array(
@@ -135,7 +136,8 @@ class SqsQueue extends AbstractQueue implements SqsQueueInterface
      *
      * {@inheritDoc}
      */
-    public function batchPush(array $jobs, array $options = array())
+    #[\Override]
+    public function batchPush(array $jobs, array $options = [])
     {
         // SQS can only handle up to 10 jobs, so if we have more jobs, we handle them in slices
         if (count($jobs) > 10) {
@@ -158,7 +160,7 @@ class SqsQueue extends AbstractQueue implements SqsQueueInterface
         );
 
         /**
-         * @var $job JobInterface 
+         * @var $job JobInterface
          */
         foreach ($jobs as $key => $job) {
             $jobParameters = array(
@@ -167,15 +169,23 @@ class SqsQueue extends AbstractQueue implements SqsQueueInterface
                 'DelaySeconds' => isset($options[$key]['delay_seconds']) ? $options[$key]['delay_seconds'] : null
             );
 
+            // Allow MessageGroupId to be sent for both queue types when provided
+            if (isset($options[$key]['message_group_id']) && $options[$key]['message_group_id'] !== '') {
+                $jobParameters['MessageGroupId'] = $options[$key]['message_group_id'];
+            }
+
             if ($this->isFifoQueue()) {
                 $jobParameters = array_merge(
                     $jobParameters,
                     $this->getFifoQueueParameters($jobParameters['MessageBody'], $options[$key])
                 );
+                // DelaySeconds is not supported for FIFO queues; ensure it is not sent per entry
+                $jobParameters['DelaySeconds'] = null;
             }
 
             $parameters['Entries'][] = array_filter(
-                $jobParameters, function ($value) {
+                $jobParameters,
+                function ($value) {
                     return $value !== null;
                 }
             );
@@ -252,6 +262,7 @@ class SqsQueue extends AbstractQueue implements SqsQueueInterface
     /**
      * {@inheritDoc}
      */
+    #[\Override]
     public function batchDelete(array $jobs)
     {
         // SQS can only handle up to 10 jobs, so if we have more jobs, we handle them in slices
@@ -275,7 +286,7 @@ class SqsQueue extends AbstractQueue implements SqsQueueInterface
         );
 
         /**
-         * @var $job JobInterface 
+         * @var $job JobInterface
          */
         foreach ($jobs as $key => $job) {
             $jobParameters = array(

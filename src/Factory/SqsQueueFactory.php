@@ -2,13 +2,12 @@
 
 namespace SlmQueueSqs\Factory;
 
-use Aws\Sdk as Aws;
-use Interop\Container\ContainerInterface;
+use Aws\Sdk;
+use Psr\Container\ContainerInterface;
+use Laminas\ServiceManager\Factory\FactoryInterface;
 use SlmQueue\Job\JobPluginManager;
 use SlmQueueSqs\Options\SqsQueueOptions;
 use SlmQueueSqs\Queue\SqsQueue;
-use Laminas\ServiceManager\FactoryInterface;
-use Laminas\ServiceManager\ServiceLocatorInterface;
 
 /**
  * SqsQueueFactory
@@ -21,28 +20,18 @@ class SqsQueueFactory implements FactoryInterface
      * @param  array|null         $options
      * @return SqsQueue
      */
-    public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
+    #[\Override]
+    public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null): SqsQueue
     {
-        $sqsClient        = $container->get(Aws::class)->createSqs();
+        $sqsClient        = $container->get(Sdk::class)->createSqs();
         $jobPluginManager = $container->get(JobPluginManager::class);
 
         // Let's see if we have options for this specific queue
         $config = $container->get('Config');
         $config = $config['slm_queue']['queues'];
 
-        $options = new SqsQueueOptions(isset($config[$requestedName]) ? $config[$requestedName] : []);
+        $queueOptions = new SqsQueueOptions(isset($config[$requestedName]) ? $config[$requestedName] : []);
 
-
-        return new SqsQueue($sqsClient, $options, $requestedName, $jobPluginManager);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function createService(ServiceLocatorInterface $serviceLocator, $name = '', $requestedName = '')
-    {
-        $parentLocator = $serviceLocator->getServiceLocator();
-
-        return $this($parentLocator, $requestedName);
+        return new SqsQueue($sqsClient, $queueOptions, $requestedName, $jobPluginManager);
     }
 }

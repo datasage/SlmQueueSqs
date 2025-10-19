@@ -9,27 +9,20 @@ use Laminas\Stdlib\AbstractOptions;
  */
 class SqsQueueOptions extends AbstractOptions
 {
-    /**
-     * @var string
-     */
-    protected $queueUrl;
+    protected ?string $queueUrl = null;
 
     /**
      * Set the queue URL
-     *
-     * @param string $queueUrl
      */
     public function setQueueUrl(string $queueUrl)
     {
-        $this->queueUrl = (string) $queueUrl;
+        $this->queueUrl = $queueUrl;
     }
 
     /**
      * Get the queue URL
-     *
-     * @return string
      */
-    public function getQueueUrl()
+    public function getQueueUrl(): ?string
     {
         return $this->queueUrl;
     }

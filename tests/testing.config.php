@@ -1,4 +1,5 @@
 <?php
+
 /*
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -16,6 +17,9 @@
  * and is licensed under the MIT license. For more information, see
  * <http://www.doctrine-project.org>.
  */
+
+use SlmQueue\Strategy\MaxRunsStrategy;
+
 return array(
     'aws' => array(
         'credentials' => array(
@@ -31,10 +35,22 @@ return array(
             'max_runs' => 1
         ),
 
+        'worker_strategies' => [
+            'queues' => [ // per queue
+                'newsletter' => [MaxRunsStrategy::class => ['max_runs' => 1],]
+            ],
+        ],
+
+        'queues' => array(
+            'newsletter' => array(
+                'queue_url' => 'https://sqs.eu-west-1.amazonaws.com/123456789012/newsletter',
+            )
+        ),
+
         'queue_manager' => array(
             'factories' => array(
                 'newsletter' => 'SlmQueueSqs\Factory\SqsQueueFactory'
             )
         )
-    )
+    ),
 );
