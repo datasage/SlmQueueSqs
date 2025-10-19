@@ -17,7 +17,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -27,20 +27,8 @@ jobs:
           tools: composer:v2
           extensions: json
 
-      - name: Validate composer.json and composer.lock
+      - name: Validate composer.json
         run: composer validate --strict
-
-      - name: Cache Composer packages
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.composer/cache/files
-            ~/.cache/composer
-            vendor
-          key: ${{ runner.os }}-php-${{ matrix.php }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-php-${{ matrix.php }}-composer-
-            ${{ runner.os }}-php-
 
       - name: Install dependencies (PHP 8.5 - ignore platform reqs)
         if: matrix.php == '8.5'
