@@ -37,6 +37,7 @@ class StartWorkerCommandTest extends TestCase
             Sdk::class,
             new Sdk([
                 'region' => 'us-west-1',
+                'version' => 'latest',
                 'credentials' => [ 'key' => 'my-key', 'secret' => 'my-secret' ],
                 'handler' => $this->mockHandler
             ])

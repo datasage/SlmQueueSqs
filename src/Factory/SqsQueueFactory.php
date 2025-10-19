@@ -21,7 +21,7 @@ class SqsQueueFactory implements FactoryInterface
      * @return SqsQueue
      */
     #[\Override]
-    public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null)
+    public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null): SqsQueue
     {
         $sqsClient        = $container->get(Sdk::class)->createSqs();
         $jobPluginManager = $container->get(JobPluginManager::class);
