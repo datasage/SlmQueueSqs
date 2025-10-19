@@ -56,7 +56,12 @@ jobs:
       #- name: Run PHPCS
       #  run: vendor/bin/phpcs -q
 
+      - name: Run Psalm (PHP 8.5 - ignore deprecations)
+        if: matrix.php == '8.5'
+        run: php -d error_reporting="E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED" vendor/bin/psalm --output-format=github --no-cache
+
       - name: Run Psalm
+        if: matrix.php != '8.5'
         run: vendor/bin/psalm --output-format=github --no-cache
 
       - name: Run PHPUnit
