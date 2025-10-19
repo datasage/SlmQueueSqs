@@ -17,7 +17,7 @@
  * <http://www.doctrine-project.org>.
  */
 
-use SlmQueueSqsTest\Util\ServiceManagerFactory;
+ini_set('memory_limit', '-1');
 
 if  (!($loader = @include __DIR__ . '/../vendor/autoload.php')
     && !($loader = @include __DIR__ . '/../../../autoload.php')

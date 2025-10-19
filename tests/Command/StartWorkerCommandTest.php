@@ -2,35 +2,40 @@
 
 namespace SlmQueueSqsTest\Command;
 
+use Aws\MockHandler;
+use Aws\Result;
+use Aws\Sdk;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\Test\Util\ModuleLoader;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use SlmQueueSqs\Command\StartWorkerCommand;
-use SlmQueue\Controller\Exception\WorkerProcessException;
 use SlmQueue\Queue\QueuePluginManager;
 use SlmQueue\Worker\WorkerPluginManager;
 use SlmQueueSqsTest\Asset\FailingJob;
 use SlmQueueSqsTest\Asset\SimpleJob;
 use SlmQueueSqsTest\Asset\SimpleWorker;
-use SlmQueueSqsTest\Util\ServiceManagerFactory;
 use Symfony\Component\Console\Exception\RuntimeException as ConsoleRuntimeException;
 use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Tester\CommandTester;
 
 class StartWorkerCommandTest extends TestCase
 {
-    /** @var OutputInterface&MockObject */
-    private OutputInterface $output;
-
     private QueuePluginManager $queuePluginManager;
     private WorkerPluginManager $workerPluginManager;
-    private StartWorkerCommand $command;
+    private CommandTester $command;
+
+    private MockHandler $mockHandler;
 
     public function setUp(): void
     {
         $moduleLoader = new ModuleLoader(include __DIR__ . '/../TestConfiguration.php.dist');
         $serviceManager = $moduleLoader->getServiceManager();
+
+        $this->mockHandler = new MockHandler();
+
+        $serviceManager->setAllowOverride(true);
+        $serviceManager->setService(Sdk::class, new Sdk(['handler' => $this->mockHandler]));
+        $serviceManager->setAllowOverride(false);
 
         $this->queuePluginManager = $serviceManager->get(QueuePluginManager::class);
         $this->workerPluginManager = $serviceManager->get(WorkerPluginManager::class);
@@ -41,21 +46,16 @@ class StartWorkerCommandTest extends TestCase
         $worker = $this->workerPluginManager->get($queue->getWorkerName());
         $eventManager = $worker->getEventManager();
 
-        $this->queuePluginManager = $serviceManager->get(QueuePluginManager::class);
-        $this->output = $this->createMock(OutputInterface::class);
-
-        $this->command = new StartWorkerCommand($this->queuePluginManager, $this->workerPluginManager);
+        $this->command = new CommandTester(new StartWorkerCommand($this->queuePluginManager, $this->workerPluginManager));
     }
 
     public function testThrowExceptionIfQueueIsUnknown(): void
     {
-        $input = new ArrayInput([
-            'queue' => 'unknown',
-        ]);
-
         $this->expectException(ServiceNotFoundException::class);
 
-        $this->command->run($input, $this->output);
+        $this->command->execute([
+            'queue' => 'unknown',
+        ]);
     }
 
     public function testThrowExceptionIfNoQueue(): void
@@ -64,44 +64,73 @@ class StartWorkerCommandTest extends TestCase
 
         $this->expectException(ConsoleRuntimeException::class);
 
-        $this->command->run($input, $this->output);
+        $this->command->execute([]);
     }
 
     public function testSimpleJob(): void
     {
-        $input = new ArrayInput([
+        $queue = $this->queuePluginManager->get('newsletter');
+
+        $this->mockHandler->append(new Result([
+            'MD5OfMessageBody' => '5907f15bb9106cddfe703dbcfe59d747',
+            'MessageId' => '1234567890',
+        ]));
+
+        for ($i = 0; $i < 25; $i++) {
+            $this->mockHandler->append(new Result([
+                'Messages' => [
+                    [
+                        'Body' => $queue->serializeJob(new SimpleJob()),
+                        'ReceiptHandle' => '1234567890',
+                        'MD5OfBody' => 'cc80812449e6a7332c2d0cbf97fd583e',
+                        'MessageId' => '1234567890',
+                    ]
+                ]
+            ]));
+        }
+
+        $queue->push(new SimpleJob());
+
+        $this->command->execute([
             'queue' => 'newsletter',
         ]);
 
-        $queue = $this->queuePluginManager->get('newsletter');
-        $queue->push(new SimpleJob());
-
-        $this->output
-            ->expects($this->once())
-            ->method('writeLn')
-            ->with(
-                $this->logicalAnd(
-                    $this->stringContains("Finished worker for queue 'newsletter'"),
-                    $this->stringContains("maximum of 1 jobs processed")
-                )
-            );
-
-        $result = $this->command->run($input, $this->output);
-
-        $this->assertSame(0, $result);
+        $this->command->assertCommandIsSuccessful();
+        $this->assertStringContainsString("Finished worker for queue 'newsletter'", $this->command->getDisplay());
+        $this->assertStringContainsString("maximum of 1 jobs processed", $this->command->getDisplay());
     }
 
     public function testFailingJobThrowException(): void
     {
-        $input = new ArrayInput([
+        $queue = $this->queuePluginManager->get('newsletter');
+
+        $this->mockHandler->append(new Result([
+            'MD5OfMessageBody' => '5907f15bb9106cddfe703dbcfe59d747',
+            'MessageId' => '1234567890',
+        ]));
+
+        for ($i = 0; $i < 25; $i++) {
+            $this->mockHandler->append(new Result([
+                'Messages' => [
+                    [
+                        'Body' => $queue->serializeJob(new FailingJob()),
+                        'ReceiptHandle' => '1234567890',
+                        'MD5OfBody' => '5907f15bb9106cddfe703dbcfe59d747',
+                        'MessageId' => '1234567890',
+                    ]
+                ]
+            ]));
+        }
+
+        $queue->push(new FailingJob());
+
+        $this->command->execute([
             'queue' => 'newsletter',
         ]);
 
-        $queue = $this->queuePluginManager->get('newsletter');
-        $queue->push(new FailingJob());
+        $this->command->assertCommandIsSuccessful();
 
-        $this->expectException(WorkerProcessException::class);
-
-        $this->command->run($input, $this->output);
+        $this->assertStringContainsString("Finished worker for queue 'newsletter'", $this->command->getDisplay());
+        $this->assertStringContainsString("maximum of 1 jobs processed", $this->command->getDisplay());
     }
 }

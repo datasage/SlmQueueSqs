@@ -16,6 +16,9 @@
  * and is licensed under the MIT license. For more information, see
  * <http://www.doctrine-project.org>.
  */
+
+use SlmQueue\Strategy\MaxRunsStrategy;
+
 return array(
     'aws' => array(
         'credentials' => array(
@@ -31,9 +34,17 @@ return array(
             'max_runs' => 1
         ),
 
+        'worker_strategies' => [
+            'default' => [ // per worker
+                MaxRunsStrategy::class => ['max_runs' => 1],
+            ],
+            'queues' => [ // per queue
+            ],
+        ],
+
         'queues' => array(
             'newsletter' => array(
-                'queue_url' => 'https://sqs.eu-west-1.amazonaws.com/123456789012/newsletter'
+                'queue_url' => 'https://sqs.eu-west-1.amazonaws.com/123456789012/newsletter',
             )
         ),
 
@@ -42,12 +53,5 @@ return array(
                 'newsletter' => 'SlmQueueSqs\Factory\SqsQueueFactory'
             )
         )
-    ),
-
-    // Override service manager factories for tests
-    'service_manager' => array(
-        'factories' => array(
-            \Aws\Sdk::class => \SlmQueueSqsTest\Factory\TestAwsFactory::class,
-        ),
     ),
 );

@@ -8,7 +8,8 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class StartWorkerCommand extends \SlmQueue\Command\StartWorkerCommand {
+class StartWorkerCommand extends \SlmQueue\Command\StartWorkerCommand
+{
     #[\Override]
     protected function configure(): void
     {
@@ -34,15 +35,21 @@ class StartWorkerCommand extends \SlmQueue\Command\StartWorkerCommand {
             );
         }
 
-        $messages = implode("\n", array_map(function (string $message): string {
-            return sprintf(' - %s', $message);
-        }, $messages));
+        $messages = implode(
+            "\n", array_map(
+                function (string $message): string {
+                    return sprintf(' - %s', $message);
+                }, $messages
+            )
+        );
 
-        $output->writeln(sprintf(
-            "Finished worker for queue '%s':\n%s\n",
-            $queueName,
-            $messages
-        ));
+        $output->writeln(
+            sprintf(
+                "Finished worker for queue '%s':\n%s\n",
+                $queueName,
+                $messages
+            )
+        );
 
         return 0;
     }
