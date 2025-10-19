@@ -53,11 +53,18 @@ class SqsQueue extends AbstractQueue implements SqsQueueInterface
             'DelaySeconds' => isset($options['delay_seconds']) ? $options['delay_seconds'] : null
         );
 
+        // Allow MessageGroupId to be sent for both queue types when provided
+        if (isset($options['message_group_id']) && $options['message_group_id'] !== '') {
+            $parameters['MessageGroupId'] = $options['message_group_id'];
+        }
+
         if ($this->isFifoQueue()) {
             $parameters = array_merge(
                 $parameters,
                 $this->getFifoQueueParameters($parameters['MessageBody'], $options)
             );
+            // DelaySeconds is not supported for FIFO queues; ensure it is not sent
+            unset($parameters['DelaySeconds']);
         }
 
         $result = $this->sqsClient->sendMessage(array_filter($parameters));
@@ -162,11 +169,18 @@ class SqsQueue extends AbstractQueue implements SqsQueueInterface
                 'DelaySeconds' => isset($options[$key]['delay_seconds']) ? $options[$key]['delay_seconds'] : null
             );
 
+            // Allow MessageGroupId to be sent for both queue types when provided
+            if (isset($options[$key]['message_group_id']) && $options[$key]['message_group_id'] !== '') {
+                $jobParameters['MessageGroupId'] = $options[$key]['message_group_id'];
+            }
+
             if ($this->isFifoQueue()) {
                 $jobParameters = array_merge(
                     $jobParameters,
                     $this->getFifoQueueParameters($jobParameters['MessageBody'], $options[$key])
                 );
+                // DelaySeconds is not supported for FIFO queues; ensure it is not sent per entry
+                $jobParameters['DelaySeconds'] = null;
             }
 
             $parameters['Entries'][] = array_filter(
